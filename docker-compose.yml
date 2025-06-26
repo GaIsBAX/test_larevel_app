@@ -11,20 +11,39 @@ services:
     depends_on:
       - db
     working_dir: /var/www
+    environment:
+      DB_CONNECTION: mysql
+      DB_HOST: db  # <-- Важно: имя сервиса
+      DB_PORT: 3306
+      DB_DATABASE: laravel
+      DB_USERNAME: laravel
+      DB_PASSWORD: laravel
+    networks:
+      - laravel_network
 
   db:
     image: mariadb:10.5
     container_name: mariadb
-    ports:
-      - "4000:3306"  # локально на 4000, внутри контейнера 3306
     environment:
       MYSQL_DATABASE: laravel
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_USER: laravel
-      MYSQL_PASSWORD: laravel
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_USER: laravel_user
+      MYSQL_PASSWORD: laravel_pass
     volumes:
       - dbdata:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - laravel_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot_password"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
   dbdata:
 
+networks:
+  laravel_network:
+    driver: bridge
