@@ -16,8 +16,8 @@ services:
       DB_HOST: db  # <-- Важно: имя сервиса
       DB_PORT: 3306
       DB_DATABASE: laravel
-      DB_USERNAME: laravel
-      DB_PASSWORD: laravel
+      DB_USERNAME: laravel_user
+      DB_PASSWORD: laravel_pass
     networks:
       - laravel_network
 
