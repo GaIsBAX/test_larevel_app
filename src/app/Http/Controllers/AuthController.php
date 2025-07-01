@@ -5,20 +5,19 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
     public function register(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255', // ← Добавляем валидацию
+            'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
             'password' => 'required|min:8'
         ]);
 
         $user = User::create([
-            'name' => $request->name, // ← Добавляем сохранение
+            'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password)
         ]);
@@ -42,12 +41,12 @@ class AuthController extends Controller
             return response()->json(['message' => 'Неверный email или пароль'], 401);
         }
 
-        $user->tokens()->where('name', 'auth-token')->delete(); // Удаляю старые токены
+        $user->tokens()->where('name', 'auth-token')->delete(); // Удаляю старые токены юзера
         $token = $user->createToken('auth-token')->plainTextToken;
 
         return response()->json([
             'token' => $token,
-            "user" => $user
+            'user' => $user
         ]);
     }
 }

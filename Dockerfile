@@ -1,6 +1,6 @@
 FROM php:8.2-cli
 
-# Установки системных зависимостей для работы laravel и PHP расширений
+# Установки системных зависимостей для работы laravel и PHP расширений с официальной доки 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     unzip \

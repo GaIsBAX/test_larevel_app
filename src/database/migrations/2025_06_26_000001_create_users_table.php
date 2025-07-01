@@ -10,9 +10,9 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('name'); // Этот столбец обязателен для стандартной конфигурации Laravel
+            $table->string('name');
             $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
+            // $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();
             $table->timestamps();
@@ -24,3 +24,19 @@ return new class extends Migration
         Schema::dropIfExists('users');
     }
 };
+
+
+
+// php artisan tinker
+
+// // Посмотреть все пользователи
+// >>> User::all();
+
+// // Посмотреть первые 5 задач с отношениями
+// >>> Task::with('user', 'category', 'tags')->limit(5)->get();
+
+// // Посмотреть конкретную таблицу
+// >>> DB::table('users')->get();
+
+// // Проверить конкретную задачу
+// >>> Task::find(1);
