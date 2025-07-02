@@ -2,20 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\LoginRequest;
+use App\Http\Requests\RegisterRequest;
+use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-    public function register(Request $request)
+    public function register(RegisterRequest $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|min:8'
-        ]);
-
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
@@ -24,29 +21,24 @@ class AuthController extends Controller
 
         return response()->json([
             'token' => $user->createToken('auth-token')->plainTextToken,
-            'user' => $user
+            'user' => new UserResource($user)
         ], 201);
     }
 
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
-
         $user = User::where('email', $request->email)->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json(['message' => 'Неверный email или пароль'], 401);
         }
 
-        $user->tokens()->where('name', 'auth-token')->delete(); // Удаляю старые токены юзера
+        $user->tokens()->where('name', 'auth-token')->delete();
         $token = $user->createToken('auth-token')->plainTextToken;
 
         return response()->json([
             'token' => $token,
-            'user' => $user
+            'user' => new UserResource($user)
         ]);
     }
 }

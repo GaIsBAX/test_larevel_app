@@ -2,73 +2,57 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\TaskStoreRequest;
+use App\Http\Requests\TaskUpdateRequest;
+use App\Http\Resources\TaskCollection;
+use App\Http\Resources\TaskResource;
 use Illuminate\Http\Request;
 
 class TaskController extends Controller
 {
-
-
-    public function store(Request $request)
+    public function store(TaskStoreRequest $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'category_id' => 'required|exists:categories,id',
-            'tags' => 'nullable|array',
-            'tags.*' => 'exists:tags,id'
-        ]);
-
         $task = $request->user()->tasks()->create([
-            'name' => $validated['name'],
-            'description' => $validated['description'] ?? null,
-            'category_id' => $validated['category_id']
+            'name' => $request->name,
+            'description' => $request->description,
+            'category_id' => $request->category_id
         ]);
 
-        if (!empty($validated['tags'])) {
-            $task->tags()->sync($validated['tags']);
+        if ($request->has('tags')) {
+            $task->tags()->sync($request->tags);
         }
 
-        return response()->json($task->load('category', 'tags'), 201);
+        return new TaskResource($task->load('category', 'tags'));
     }
 
     public function index(Request $request)
     {
-        return response()->json(
-            $request->user()
-                ->tasks()
-                ->select('id', 'name')
-                ->get()
-        );
+        $tasks = $request->user()
+            ->tasks()
+            ->select('id', 'name')
+            ->get();
+
+        return new TaskCollection($tasks);
     }
 
     public function show(Request $request, $id)
     {
         $task = $request->user()->tasks()->findOrFail($id);
-        return response()->json($task->load('category', 'tags'));
+        return new TaskResource($task->load('category', 'tags'));
     }
 
-
-    public function update(Request $request, $id)
+    public function update(TaskUpdateRequest $request, $id)
     {
         $task = $request->user()->tasks()->findOrFail($id);
 
-        $validated = $request->validate([
-            'name' => 'sometimes|string|max:255',
-            'description' => 'nullable|string',
-            'category_id' => 'sometimes|exists:categories,id',
-            'tags' => 'nullable|array',
-            'tags.*' => 'exists:tags,id'
-        ]);
+        $task->update($request->only(['name', 'description', 'category_id']));
 
-        $task->update($validated);
-
-        if (isset($validated['tags'])) {
-            $task->tags()->sync($validated['tags']);
+        if ($request->has('tags')) {
+            $task->tags()->sync($request->tags);
         }
 
-        return response()->json($task->fresh()->load('category', 'tags'));
+        return new TaskResource($task->fresh()->load('category', 'tags'));
     }
-
     public function destroy(Request $request, $id)
     {
         $task = $request->user()->tasks()->findOrFail($id);
